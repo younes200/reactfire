@@ -15,17 +15,22 @@ import { ObservableStatus, useObservable } from './useObservable';
 import { from } from 'rxjs';
 import { ReactFireOptions } from '.';
 
+import { ReactNativeFirebase } from '@react-native-firebase/app';
+import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+
+type NativeFirestore = FirebaseFirestoreTypes.Module;
+
 export const AppCheckSdkContext = React.createContext<AppCheck | undefined>(undefined);
 export const AuthSdkContext = React.createContext<Auth | undefined>(undefined);
 export const AnalyticsSdkContext = React.createContext<Analytics | undefined>(undefined);
 export const DatabaseSdkContext = React.createContext<Database | undefined>(undefined);
-export const FirestoreSdkContext = React.createContext<Firestore | undefined>(undefined);
+export const FirestoreSdkContext = React.createContext<Firestore | NativeFirestore | undefined>(undefined);
 export const FunctionsSdkContext = React.createContext<Functions | undefined>(undefined);
 export const StorageSdkContext = React.createContext<FirebaseStorage | undefined>(undefined);
 export const PerformanceSdkContext = React.createContext<FirebasePerformance | undefined>(undefined);
 export const RemoteConfigSdkContext = React.createContext<RemoteConfig | undefined>(undefined);
 
-type FirebaseSdks = Analytics | AppCheck | Auth | Database | Firestore | FirebasePerformance | FirebaseStorage | Functions | RemoteConfig;
+type FirebaseSdks = Analytics | AppCheck | Auth | Database | Firestore | NativeFirestore | FirebasePerformance | FirebaseStorage | Functions | RemoteConfig;
 
 function getSdkProvider<Sdk extends FirebaseSdks>(SdkContext: React.Context<Sdk | undefined>) {
   return function SdkProvider(props: React.PropsWithChildren<{ sdk: Sdk }>) {
@@ -52,7 +57,7 @@ function useSdk<Sdk extends FirebaseSdks>(SdkContext: React.Context<Sdk | undefi
 function useInitSdk<Sdk extends FirebaseSdks>(
   sdkName: string,
   SdkContext: React.Context<Sdk | undefined>,
-  sdkInitializer: (firebaseApp: FirebaseApp) => Promise<Sdk>,
+  sdkInitializer: (firebaseApp: FirebaseApp | ReactNativeFirebase.FirebaseApp) => Promise<Sdk>,
   options?: ReactFireOptions
 ) {
   const firebaseApp = useFirebaseApp();
@@ -73,7 +78,7 @@ export const AppCheckProvider = getSdkProvider<AppCheck>(AppCheckSdkContext);
 export const AuthProvider = getSdkProvider<Auth>(AuthSdkContext);
 export const AnalyticsProvider = getSdkProvider<Analytics>(AnalyticsSdkContext);
 export const DatabaseProvider = getSdkProvider<Database>(DatabaseSdkContext);
-export const FirestoreProvider = getSdkProvider<Firestore>(FirestoreSdkContext);
+export const FirestoreProvider = getSdkProvider<Firestore | NativeFirestore>(FirestoreSdkContext);
 export const FunctionsProvider = getSdkProvider<Functions>(FunctionsSdkContext);
 export const PerformanceProvider = getSdkProvider<FirebasePerformance>(PerformanceSdkContext);
 export const StorageProvider = getSdkProvider<FirebaseStorage>(StorageSdkContext);
@@ -83,14 +88,14 @@ export const useAppCheck = () => useSdk<AppCheck>(AppCheckSdkContext);
 export const useAuth = () => useSdk<Auth>(AuthSdkContext);
 export const useAnalytics = () => useSdk<Analytics>(AnalyticsSdkContext);
 export const useDatabase = () => useSdk<Database>(DatabaseSdkContext);
-export const useFirestore = () => useSdk<Firestore>(FirestoreSdkContext);
+export const useFirestore = () => useSdk<Firestore | NativeFirestore>(FirestoreSdkContext);
 export const useFunctions = () => useSdk<Functions>(FunctionsSdkContext);
 export const usePerformance = () => useSdk<FirebasePerformance>(PerformanceSdkContext);
 export const useStorage = () => useSdk<FirebaseStorage>(StorageSdkContext);
 export const useRemoteConfig = () => useSdk<RemoteConfig>(RemoteConfigSdkContext);
 
 type InitSdkHook<Sdk extends FirebaseSdks> = (
-  initializer: (firebaseApp: FirebaseApp) => Promise<Sdk>,
+  initializer: (firebaseApp: FirebaseApp | ReactNativeFirebase.FirebaseApp) => Promise<Sdk>,
   options?: ReactFireOptions<Sdk>
 ) => ObservableStatus<Sdk>;
 
@@ -98,7 +103,8 @@ export const useInitAppCheck: InitSdkHook<AppCheck> = (initializer, options) => 
 export const useInitAuth: InitSdkHook<Auth> = (initializer, options) => useInitSdk<Auth>('auth', AuthSdkContext, initializer, options);
 export const useInitAnalytics: InitSdkHook<Analytics> = (initializer, options) => useInitSdk<Analytics>('analytics', AnalyticsSdkContext, initializer, options);
 export const useInitDatabase: InitSdkHook<Database> = (initializer, options) => useInitSdk<Database>('database', DatabaseSdkContext, initializer, options);
-export const useInitFirestore: InitSdkHook<Firestore> = (initializer, options) => useInitSdk<Firestore>('firestore', FirestoreSdkContext, initializer, options);
+export const useInitFirestore: InitSdkHook<Firestore | NativeFirestore> = (initializer, options) =>
+  useInitSdk<Firestore | NativeFirestore>('firestore', FirestoreSdkContext, initializer, options);
 export const useInitFunctions: InitSdkHook<Functions> = (initializer, options) => useInitSdk<Functions>('functions', FunctionsSdkContext, initializer, options);
 export const useInitPerformance: InitSdkHook<FirebasePerformance> = (initializer, options) =>
   useInitSdk<FirebasePerformance>('performance', PerformanceSdkContext, initializer, options);

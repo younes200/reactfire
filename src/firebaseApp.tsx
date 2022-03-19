@@ -2,15 +2,16 @@ import * as React from 'react';
 import { getApps, initializeApp, registerVersion } from 'firebase/app';
 
 import type { FirebaseApp, FirebaseOptions } from 'firebase/app';
+import { ReactNativeFirebase } from '@react-native-firebase/app';
 
 // INVESTIGATE I don't like magic strings, can we have export this in js-sdk?
 const DEFAULT_APP_NAME = '[DEFAULT]';
 
-const FirebaseAppContext = React.createContext<FirebaseApp | undefined>(undefined);
+const FirebaseAppContext = React.createContext<FirebaseApp | ReactNativeFirebase.FirebaseApp | undefined>(undefined);
 const SuspenseEnabledContext = React.createContext<boolean>(false);
 
 interface FirebaseAppProviderProps {
-  firebaseApp?: FirebaseApp;
+  firebaseApp?: FirebaseApp | ReactNativeFirebase.FirebaseApp;
   firebaseConfig?: FirebaseOptions;
   appName?: string;
   suspense?: boolean;
@@ -24,7 +25,7 @@ const shallowEq = (a: { [key: string]: any }, b: { [key: string]: any }) => a ==
 export function FirebaseAppProvider(props: React.PropsWithChildren<FirebaseAppProviderProps>) {
   const { firebaseConfig, appName, suspense } = props;
 
-  const firebaseApp: FirebaseApp = React.useMemo(() => {
+  const firebaseApp: FirebaseApp | ReactNativeFirebase.FirebaseApp = React.useMemo(() => {
     if (props.firebaseApp) {
       return props.firebaseApp;
     }
